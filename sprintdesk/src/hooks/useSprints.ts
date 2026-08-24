@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 async function getSprints() {
   const response = await fetch(
-    "http://localhost:8000/sprints"
+    "https://sprintdesk-raaa.onrender.com/sprints"
   );
 
   if (!response.ok) {
