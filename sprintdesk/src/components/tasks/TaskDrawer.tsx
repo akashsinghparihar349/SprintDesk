@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 
-import type {
-  Task,
-  TaskPriority,
-  TaskStatus,
-} from "../../types/task.types";
+import type { Task, TaskPriority, TaskStatus } from "../../types/task.types";
 
 import {
   updateTask as updateTaskApi,
@@ -18,39 +14,21 @@ interface TaskDrawerProps {
   onClose: () => void;
 }
 
-const statuses: TaskStatus[] = [
-  "backlog",
-  "in-progress",
-  "review",
-  "done",
-];
+const statuses: TaskStatus[] = ["backlog", "in-progress", "review", "done"];
 
-const priorities: TaskPriority[] = [
-  "low",
-  "medium",
-  "high",
-];
+const priorities: TaskPriority[] = ["low", "medium", "high"];
 
-export default function TaskDrawer({
-  task,
-  onClose,
-}: TaskDrawerProps) {
-  const updateTaskStore = useBoardStore(
-    (state) => state.updateTask
-  );
+export default function TaskDrawer({ task, onClose }: TaskDrawerProps) {
+  const updateTaskStore = useBoardStore((state) => state.updateTask);
 
-  const deleteTaskStore = useBoardStore(
-    (state) => state.deleteTask
-  );
+  const deleteTaskStore = useBoardStore((state) => state.deleteTask);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
-  const [status, setStatus] =
-    useState<TaskStatus>("backlog");
+  const [status, setStatus] = useState<TaskStatus>("backlog");
 
-  const [priority, setPriority] =
-    useState<TaskPriority>("medium");
+  const [priority, setPriority] = useState<TaskPriority>("medium");
 
   const [dueDate, setDueDate] = useState("");
 
@@ -80,10 +58,14 @@ export default function TaskDrawer({
   // ========================================
 
   async function handleSave() {
+    if (!task) return;
+
     if (!title.trim()) {
       setError("Task title is required.");
       return;
     }
+
+    const taskId = task.id;
 
     try {
       setSaving(true);
@@ -98,27 +80,15 @@ export default function TaskDrawer({
         updatedAt: new Date().toISOString(),
       };
 
-      const updatedTask =
-        await updateTaskApi(
-          task.id,
-          updates
-        );
+      const updatedTask = await updateTaskApi(taskId, updates);
 
-      updateTaskStore(
-        task.id,
-        updatedTask
-      );
+      updateTaskStore(taskId, updatedTask);
 
       onClose();
     } catch (error) {
-      console.error(
-        "Failed to update task:",
-        error
-      );
+      console.error("Failed to update task:", error);
 
-      setError(
-        "Failed to update task."
-      );
+      setError("Failed to update task.");
     } finally {
       setSaving(false);
     }
@@ -129,35 +99,31 @@ export default function TaskDrawer({
   // ========================================
 
   async function handleDelete() {
+    if (!task) return;
+
     const confirmed = window.confirm(
-      "Are you sure you want to delete this task?"
+      "Are you sure you want to delete this task?",
     );
 
     if (!confirmed) {
       return;
     }
 
+    const taskId = task.id;
+
     try {
       setDeleting(true);
       setError("");
 
-      // Delete from backend
-      await deleteTaskApi(task.id);
+      await deleteTaskApi(taskId);
 
-      // Delete from Zustand
-      deleteTaskStore(task.id);
+      deleteTaskStore(taskId);
 
-      // Close drawer
       onClose();
     } catch (error) {
-      console.error(
-        "Failed to delete task:",
-        error
-      );
+      console.error("Failed to delete task:", error);
 
-      setError(
-        "Failed to delete task."
-      );
+      setError("Failed to delete task.");
     } finally {
       setDeleting(false);
     }
@@ -167,27 +133,20 @@ export default function TaskDrawer({
     <>
       {/* Overlay */}
 
-      <div
-        onClick={onClose}
-        className="fixed inset-0 z-40 bg-black/30"
-      />
+      <div onClick={onClose} className="fixed inset-0 z-40 bg-black/30" />
 
       {/* Drawer */}
 
       <aside className="fixed right-0 top-0 z-50 flex h-3/4 w-full max-w-xl flex-col bg-white shadow-2xl dark:bg-slate-900">
-
         {/* Header */}
 
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
-
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
               Task Details
             </h2>
 
-            <p className="text-xs text-slate-400">
-              Task #{task.id}
-            </p>
+            <p className="text-xs text-slate-400">Task #{task.id}</p>
           </div>
 
           <button
@@ -197,15 +156,12 @@ export default function TaskDrawer({
           >
             ×
           </button>
-
         </div>
 
         {/* Content */}
 
         <div className="flex-1 overflow-y-auto p-6">
-
           <div className="space-y-5">
-
             {/* Error */}
 
             {error && (
@@ -223,11 +179,7 @@ export default function TaskDrawer({
 
               <input
                 value={title}
-                onChange={(event) =>
-                  setTitle(
-                    event.target.value
-                  )
-                }
+                onChange={(event) => setTitle(event.target.value)}
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               />
             </div>
@@ -242,11 +194,7 @@ export default function TaskDrawer({
               <textarea
                 rows={5}
                 value={description}
-                onChange={(event) =>
-                  setDescription(
-                    event.target.value
-                  )
-                }
+                onChange={(event) => setDescription(event.target.value)}
                 className="w-full resize-none rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               />
             </div>
@@ -261,23 +209,15 @@ export default function TaskDrawer({
               <select
                 value={status}
                 onChange={(event) =>
-                  setStatus(
-                    event.target
-                      .value as TaskStatus
-                  )
+                  setStatus(event.target.value as TaskStatus)
                 }
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               >
-                {statuses.map(
-                  (item) => (
-                    <option
-                      key={item}
-                      value={item}
-                    >
-                      {item}
-                    </option>
-                  )
-                )}
+                {statuses.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -291,23 +231,15 @@ export default function TaskDrawer({
               <select
                 value={priority}
                 onChange={(event) =>
-                  setPriority(
-                    event.target
-                      .value as TaskPriority
-                  )
+                  setPriority(event.target.value as TaskPriority)
                 }
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               >
-                {priorities.map(
-                  (item) => (
-                    <option
-                      key={item}
-                      value={item}
-                    >
-                      {item}
-                    </option>
-                  )
-                )}
+                {priorities.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -321,11 +253,7 @@ export default function TaskDrawer({
               <input
                 type="date"
                 value={dueDate}
-                onChange={(event) =>
-                  setDueDate(
-                    event.target.value
-                  )
-                }
+                onChange={(event) => setDueDate(event.target.value)}
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               />
             </div>
@@ -333,52 +261,37 @@ export default function TaskDrawer({
             {/* Assignee */}
 
             <div className="rounded-lg bg-slate-50 p-4 dark:bg-slate-800">
-
-              <p className="text-xs text-slate-400">
-                Assignee
-              </p>
+              <p className="text-xs text-slate-400">Assignee</p>
 
               <p className="mt-1 font-medium text-slate-800 dark:text-white">
                 User #{task.assigneeId}
               </p>
-
             </div>
 
             {/* Sprint */}
 
             <div className="rounded-lg bg-slate-50 p-4 dark:bg-slate-800">
-
-              <p className="text-xs text-slate-400">
-                Sprint
-              </p>
+              <p className="text-xs text-slate-400">Sprint</p>
 
               <p className="mt-1 font-medium text-slate-800 dark:text-white">
                 Sprint #{task.sprintId}
               </p>
-
             </div>
-
           </div>
-
         </div>
 
         {/* Footer */}
 
         <div className="flex gap-3 border-t border-slate-200 p-4 dark:border-slate-800">
-
           {/* DELETE */}
 
           <button
             type="button"
             onClick={handleDelete}
-            disabled={
-              saving || deleting
-            }
+            disabled={saving || deleting}
             className="mr-auto rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {deleting
-              ? "Deleting..."
-              : "Delete Task"}
+            {deleting ? "Deleting..." : "Delete Task"}
           </button>
 
           {/* CANCEL */}
@@ -386,9 +299,7 @@ export default function TaskDrawer({
           <button
             type="button"
             onClick={onClose}
-            disabled={
-              saving || deleting
-            }
+            disabled={saving || deleting}
             className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
           >
             Cancel
@@ -399,18 +310,12 @@ export default function TaskDrawer({
           <button
             type="button"
             onClick={handleSave}
-            disabled={
-              saving || deleting
-            }
+            disabled={saving || deleting}
             className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {saving
-              ? "Saving..."
-              : "Save Changes"}
+            {saving ? "Saving..." : "Save Changes"}
           </button>
-
         </div>
-
       </aside>
     </>
   );

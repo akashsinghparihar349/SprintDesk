@@ -1,6 +1,10 @@
 import { useState } from "react";
 
-import type { TaskPriority, TaskStatus } from "../../types/task.types";
+import type {
+  TaskPriority,
+  TaskStatus,
+  CreateTaskInput,
+} from "../../types/task.types";
 
 import { createTask } from "../../services/task.service";
 import { useBoardStore } from "../../stores/board.store";
@@ -16,27 +20,10 @@ const statuses: TaskStatus[] = ["backlog", "in-progress", "review", "done"];
 const priorities: TaskPriority[] = ["low", "medium", "high"];
 
 export default function CreateTaskModal({ onClose }: CreateTaskModalProps) {
-  // =========================
-  // Zustand
-  // =========================
-
   const addTask = useBoardStore((state) => state.addTask);
-
   const tasks = useBoardStore((state) => state.tasks);
 
-  // =========================
-  // Users
-  // =========================
-
-  const {
-    data: users = [],
-    isLoading: usersLoading,
-    isError: usersError,
-  } = useUsers();
-
-  // =========================
-  // Sprints
-  // =========================
+  const { data: users = [], isLoading: usersLoading } = useUsers();
 
   const {
     data: sprints = [],
@@ -44,12 +31,7 @@ export default function CreateTaskModal({ onClose }: CreateTaskModalProps) {
     isError: sprintsError,
   } = useSprints();
 
-  // =========================
-  // Form State
-  // =========================
-
   const [title, setTitle] = useState("");
-
   const [description, setDescription] = useState("");
 
   const [status, setStatus] = useState<TaskStatus>("backlog");
@@ -60,30 +42,22 @@ export default function CreateTaskModal({ onClose }: CreateTaskModalProps) {
 
   const [dueDate, setDueDate] = useState("");
 
-  const [sprintId, setSprintId] = useState<string>("1");
+  const [sprintId, setSprintId] = useState<number>(1);
 
   const [saving, setSaving] = useState(false);
-
   const [error, setError] = useState("");
 
-  // =========================
-  // Create Task
-  // =========================
-
   async function handleCreate() {
-    // Title validation
     if (!title.trim()) {
       setError("Task title is required.");
       return;
     }
 
-    // User validation
     if (!assigneeId) {
       setError("Please select an assignee.");
       return;
     }
 
-    // Sprint validation
     if (!sprintId) {
       setError("Please select a sprint.");
       return;
@@ -93,10 +67,6 @@ export default function CreateTaskModal({ onClose }: CreateTaskModalProps) {
       setSaving(true);
       setError("");
 
-      // =========================
-      // Calculate Task Order
-      // =========================
-
       const statusTasks = tasks.filter((task) => task.status === status);
 
       const maxOrder =
@@ -104,47 +74,24 @@ export default function CreateTaskModal({ onClose }: CreateTaskModalProps) {
           ? Math.max(...statusTasks.map((task) => task.order))
           : 0;
 
-      // =========================
-      // Task Data
-      // =========================
-
-      const taskData = {
+      const taskData: CreateTaskInput = {
         title: title.trim(),
-
         description: description.trim(),
-
         status,
-
         priority,
-
         assigneeId,
-
         dueDate,
-
         sprintId,
-
         order: maxOrder + 1,
       };
 
       console.log("Creating task:", taskData);
 
-      // =========================
-      // Save to Backend
-      // =========================
-
       const newTask = await createTask(taskData);
 
       console.log("Task created:", newTask);
 
-      // =========================
-      // Update Zustand
-      // =========================
-
       addTask(newTask);
-
-      // =========================
-      // Close Modal
-      // =========================
 
       onClose();
     } catch (error) {
@@ -156,27 +103,11 @@ export default function CreateTaskModal({ onClose }: CreateTaskModalProps) {
     }
   }
 
-  // =========================
-  // UI
-  // =========================
-
   return (
     <>
-      {/* =========================
-          Overlay
-      ========================= */}
-
       <div onClick={onClose} className="fixed inset-0 z-50 bg-black/40" />
 
-      {/* =========================
-          Modal
-      ========================= */}
-
       <div className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white shadow-2xl dark:bg-slate-900">
-        {/* =========================
-            Header
-        ========================= */}
-
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-800">
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">
@@ -197,22 +128,14 @@ export default function CreateTaskModal({ onClose }: CreateTaskModalProps) {
           </button>
         </div>
 
-        {/* =========================
-            Content
-        ========================= */}
-
         <div className="max-h-[75vh] space-y-5 overflow-y-auto p-6">
-          {/* Error */}
-
           {error && (
             <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
               {error}
             </div>
           )}
 
-          {/* =========================
-              Title
-          ========================= */}
+          {/* Title */}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -228,9 +151,7 @@ export default function CreateTaskModal({ onClose }: CreateTaskModalProps) {
             />
           </div>
 
-          {/* =========================
-              Description
-          ========================= */}
+          {/* Description */}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -246,9 +167,7 @@ export default function CreateTaskModal({ onClose }: CreateTaskModalProps) {
             />
           </div>
 
-          {/* =========================
-              Status
-          ========================= */}
+          {/* Status */}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -268,9 +187,7 @@ export default function CreateTaskModal({ onClose }: CreateTaskModalProps) {
             </select>
           </div>
 
-          {/* =========================
-              Priority
-          ========================= */}
+          {/* Priority */}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -292,10 +209,6 @@ export default function CreateTaskModal({ onClose }: CreateTaskModalProps) {
             </select>
           </div>
 
-          {/* =========================
-              Assignee
-          ========================= */}
-
           {/* Assignee */}
 
           <div>
@@ -310,14 +223,13 @@ export default function CreateTaskModal({ onClose }: CreateTaskModalProps) {
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
             >
               {usersLoading ? (
-                <option value="">Loading users...</option>
+                <option value={0}>Loading users...</option>
               ) : users.length === 0 ? (
-                <option value="">No users found</option>
+                <option value={0}>No users found</option>
               ) : (
                 users.map((user) => (
                   <option key={user.id} value={user.id}>
                     {user.firstName ||
-                      user.name ||
                       user.username ||
                       user.email ||
                       `User #${user.id}`}
@@ -328,9 +240,7 @@ export default function CreateTaskModal({ onClose }: CreateTaskModalProps) {
             </select>
           </div>
 
-          {/* =========================
-              Due Date
-          ========================= */}
+          {/* Due Date */}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -345,9 +255,7 @@ export default function CreateTaskModal({ onClose }: CreateTaskModalProps) {
             />
           </div>
 
-          {/* =========================
-              Sprint
-          ========================= */}
+          {/* Sprint */}
 
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -356,31 +264,23 @@ export default function CreateTaskModal({ onClose }: CreateTaskModalProps) {
 
             <select
               value={sprintId}
-              onChange={(event) => setSprintId(event.target.value)}
+              onChange={(event) => setSprintId(Number(event.target.value))}
               disabled={sprintsLoading || sprints.length === 0}
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
             >
-              {/* Loading */}
-
-              {sprintsLoading && <option value="">Loading sprints...</option>}
-
-              {/* Error */}
+              {sprintsLoading && <option value={0}>Loading sprints...</option>}
 
               {!sprintsLoading && sprintsError && (
-                <option value="">Failed to load sprints</option>
+                <option value={0}>Failed to load sprints</option>
               )}
-
-              {/* Empty */}
 
               {!sprintsLoading && !sprintsError && sprints.length === 0 && (
-                <option value="">No sprints found</option>
+                <option value={0}>No sprints found</option>
               )}
-
-              {/* Sprints */}
 
               {!sprintsLoading &&
                 !sprintsError &&
-                sprints.map((sprint) => (
+                sprints.map((sprint: any) => (
                   <option key={sprint.id} value={sprint.id}>
                     {sprint.name}
                   </option>
@@ -389,9 +289,7 @@ export default function CreateTaskModal({ onClose }: CreateTaskModalProps) {
           </div>
         </div>
 
-        {/* =========================
-            Footer
-        ========================= */}
+        {/* Footer */}
 
         <div className="flex justify-end gap-3 border-t border-slate-200 p-4 dark:border-slate-800">
           <button
