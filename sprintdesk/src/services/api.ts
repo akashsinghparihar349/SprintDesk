@@ -65,7 +65,7 @@ export async function refreshAccessToken(): Promise<boolean> {
 
   try {
     const response = await fetch(
-      `${API_BASE_URL}/auth/refresh`,
+      `${API_BASE_URL}/auth/refresh`,  
       {
         method: "POST",
         headers: {
