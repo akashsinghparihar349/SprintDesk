@@ -1,6 +1,6 @@
 import { useAuthStore } from "../stores/auth.store";
 
-const API_BASE_URL = "https://dummyjson.com";
+const API_BASE_URL = "https://sprintdesk-raaa.onrender.com";
 
 type RequestOptions = RequestInit & {
   retry?: boolean;
