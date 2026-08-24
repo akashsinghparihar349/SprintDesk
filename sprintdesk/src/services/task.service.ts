@@ -3,7 +3,7 @@ import type {
   Task,
 } from "../types/task.types";
 
-const TASK_API_URL = "http://localhost:8000/tasks";
+const TASK_API_URL = "https://sprintdesk-raaa.onrender.com/tasks";
 
 export async function getTasks(): Promise<Task[]> {
   const response = await fetch(TASK_API_URL);
