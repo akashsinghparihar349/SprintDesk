@@ -1,6 +1,6 @@
 import type { User } from "../types/user.types";
 
-const USERS_API_URL = "http://localhost:8000/users";
+const USERS_API_URL = "https://sprintdesk-raaa.onrender.com/users";
 
 export async function getUsers(): Promise<User[]> {
   const response = await fetch(USERS_API_URL);
